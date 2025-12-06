@@ -15,7 +15,7 @@ Public Class ControlAppMock
     Private Const ResultPipeName As String = "dt_ABTcontrolS"     ' ABT→制御 (ABT側 NamedPipeSender のクライアント)
 
     ' ★ エンコーディング
-    Private ReadOnly commandEncoding As Encoding = Encoding.UTF8          ' 制御→ABT（Receiver側が UTF8）
+    Private ReadOnly commandEncoding As Encoding = Encoding.GetEncoding(932) ' 制御→ABT（Receiver側が UTF8をSJISに修正）
     Private ReadOnly resultEncoding As Encoding = Encoding.GetEncoding(932) ' ABT→制御（Sender側が SJIS）
 
     ' パイプ実体
