@@ -181,8 +181,6 @@ Public Class ControlAppMock
         '    認証データ送信日時：20250701（例）
         SendLine("Call,AbtAuthenticationData,00112233445566778899,20250701")
 
-        
-
         ' あとは ReceiveLoop 側で Result / Event を受信してログに出る。
         ' 必要であれば、Main から Console.ReadKey() 等でしばらく待機する。
     End Sub
