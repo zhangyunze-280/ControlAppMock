@@ -181,6 +181,14 @@ Public Class ControlAppMock
         '    認証データ送信日時：20250701（例）
         SendLine("Call,AbtAuthenticationData,00112233445566778899,20250701")
 
+        
+
+        ' あとは ReceiveLoop 側で Result / Event を受信してログに出る。
+        ' 必要であれば、Main から Console.ReadKey() 等でしばらく待機する。
+    End Sub
+
+    ’判定要求実行
+    Public Sub TestRequestJudgment()
         Dim commandLine As String = _
             $"Call,AbtTicketGateJudgment," & _
             $"{procDir}," & _          ' 引数 1: 処理方向
@@ -199,9 +207,5 @@ Public Class ControlAppMock
             $"{staOrder}"               ' 引数 14: 駅順
 
         SendLine(commandLine)
-
-        ' あとは ReceiveLoop 側で Result / Event を受信してログに出る。
-        ' 必要であれば、Main から Console.ReadKey() 等でしばらく待機する。
     End Sub
-
 End Class
