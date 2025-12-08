@@ -28,10 +28,12 @@ Public Class ControlAppMock
 
     '判定要求コマンド定義
     ' 132文字のQRコード (args(1))
-    Dim qrCode132 As String = New String("A"c, 132)
+    'Dim qrCode132 As String = New String("A"c, 132)
+    Dim qrCode132 As String = New String("1"c, 132)
 
     ' 24文字のQRチケット番号 (args(2))
-    Dim qrTicket24 As String = New String("B"c, 24)
+    ’Dim qrTicket24 As String = New String("B"c, 24)
+    Dim qrTicket24 As String = New String("2"c, 24)
 
     ' 要求日時 (yyyyMMddHHmmssff) (args(3))
     Dim reqTime16 As String = "2025120615150000" 
@@ -47,10 +49,10 @@ Public Class ControlAppMock
     Dim execPermitFlag As String = "00"  ' 実行許可フラグ
     Dim modelType As String = "02"       ' 媒体種別 (01～04)
     Dim otherStaAppFlag As String = "01" ' 他駅入出場フラグ
-    Dim bizOpRegCode As String = "AA"    ' 地域コード
-    Dim bizOpUserCode As String = "BB"   ' ユーザコード
-    Dim lineSec As String = "CC"         ' 線区
-    Dim staOrder As String = "DD"        ' 駅順
+    Dim bizOpRegCode As String = "10"    ' 地域コード
+    Dim bizOpUserCode As String = "20"   ' ユーザコード
+    Dim lineSec As String = "30"         ' 線区
+    Dim staOrder As String = "40"        ' 駅順
 
 
 
