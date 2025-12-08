@@ -1,0 +1,39 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+AbtControlApp
+</name>
+</assembly>
+<members>
+<member name="T:AbtControlApp.My.Resources.Resources">
+<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member>
+<member name="P:AbtControlApp.My.Resources.Resources.ResourceManager">
+<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member>
+<member name="P:AbtControlApp.My.Resources.Resources.Culture">
+<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member>
+<member name="T:AbtControlApp.ControlAppMock">
+ <summary>
+ 制御アプリ模擬（ABTコントロールとの名前付きパイプ通信テスト用）
+ ・dt_ABTcontrolIS にクライアントとして接続（コマンド送信）
+ ・dt_ABTcontrolS をサーバとして待ち受け（Result/Event 受信）
+ </summary>
+</member>
+<member name="M:AbtControlApp.ControlAppMock.RunIt01Scenario">
+ <summary>
+ IT-01「起動時（タンキングデータ無し）」シナリオを一気に流すための補助メソッド。
+ 手動で送受信を確認したいだけなら、Main側から SendLine を好きに呼んでもOK。
+ </summary>
+</member>
+</members>
+</doc>
