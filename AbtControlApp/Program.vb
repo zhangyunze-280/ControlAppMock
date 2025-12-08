@@ -6,9 +6,9 @@
         mock.Start()
 
         ' ★ ここにブレークポイント②：IT-01 の入力シーケンスを流す直前
-        'mock.RunIt01Scenario()
+        mock.RunIt01Scenario()
 
-        mock.TestRequestJudgment()
+        System.Threading.Thread.Sleep(5000)
 
         mock.TestRequestJudgment()
 
