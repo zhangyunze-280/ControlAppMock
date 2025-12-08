@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\AbtControlApp"
+    "\\AbtControlApp",
+    "\\AbtControlApp\\bin",
+    "\\AbtControlApp\\obj\\Debug"
   ],
-  "SelectedNode": "\\AbtControlApp\\ControlAppMock.vb",
   "PreviewInSolutionExplorer": false
 }
