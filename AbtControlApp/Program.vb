@@ -8,6 +8,8 @@
         ' ★ ここにブレークポイント②：IT-01 の入力シーケンスを流す直前
         mock.RunIt01Scenario()
 
+        System.Threading.Thread.Sleep(5000)
+
         mock.TestRequestJudgment()
 
         Console.WriteLine("IT-01 シナリオ送信完了。Result/Event を確認してください。")
