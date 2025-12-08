@@ -8,4 +8,3 @@ C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbproj.Core
 C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.exe
 C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.xml
 C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.pdb
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbprojAssemblyReference.cache

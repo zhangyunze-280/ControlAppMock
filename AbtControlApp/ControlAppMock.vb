@@ -32,7 +32,7 @@ Public Class ControlAppMock
     Dim qrCode132 As String = New String("1"c, 132)
 
     ' 24文字のQRチケット番号 (args(2))
-    ’Dim qrTicket24 As String = New String("B"c, 24)
+    ' Dim qrTicket24 As String = New String("B"c, 24)
     Dim qrTicket24 As String = New String("2"c, 24)
 
     ' 要求日時 (yyyyMMddHHmmssff) (args(3))
@@ -187,7 +187,7 @@ Public Class ControlAppMock
         ' 必要であれば、Main から Console.ReadKey() 等でしばらく待機する。
     End Sub
 
-    ’判定要求実行
+    ' 判定要求実行
     Public Sub TestRequestJudgment()
         Dim commandLine As String = _
             $"Call,AbtTicketGateJudgment," & _
