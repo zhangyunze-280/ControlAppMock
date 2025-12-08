@@ -15,7 +15,7 @@ Public Class ControlAppMock
     Private Const ResultPipeName As String = "dt_ABTcontrolS"     ' ABT→制御 (ABT側 NamedPipeSender のクライアント)
 
     ' ★ エンコーディング
-    Private ReadOnly commandEncoding As Encoding = Encoding.UTF8          ' 制御→ABT（Receiver側が UTF8）
+    Private ReadOnly commandEncoding As Encoding = Encoding.GetEncoding(932) ' 制御→ABT（Receiver側が UTF8をSJISに修正）
     Private ReadOnly resultEncoding As Encoding = Encoding.GetEncoding(932) ' ABT→制御（Sender側が SJIS）
 
     ' パイプ実体
@@ -28,12 +28,10 @@ Public Class ControlAppMock
 
     '判定要求コマンド定義
     ' 132文字のQRコード (args(1))
-    'Dim qrCode132 As String = New String("A"c, 132)
-    Dim qrCode132 As String = New String("1"c, 132)
+    Dim qrCode132 As String = New String("A"c, 132)
 
     ' 24文字のQRチケット番号 (args(2))
-    'Dim qrTicket24 As String = New String("B"c, 24)
-    Dim qrTicket24 As String = New String("2"c, 24)
+    Dim qrTicket24 As String = New String("B"c, 24)
 
     ' 要求日時 (yyyyMMddHHmmssff) (args(3))
     Dim reqTime16 As String = "2025120615150000" 
@@ -43,16 +41,16 @@ Public Class ControlAppMock
 
     ' 各フラグと駅情報コード (args(4) ～ args(13))
     ' 00/01/02 などの許容値と2桁長をクリアする値
-    Dim issueDisFlag As String = "00"     ' 発行障害フラグ (0x00:オンライン発行)
-    Dim appBailFlag As String = "00"      ' 出場救済フラグ (0x00:出場救済対象外)
-    Dim offlineTktFlag As String = "01"   ' オフライン改札機利用フラグ (0x01:利用なし)
-    Dim execPermitFlag As String = "00"   ' 実行許可フラグ (0x00:実行許可オフ)
-    Dim modelType As String = "02"        ' 媒体種別 (0x02:QR)
-    Dim otherStaAppFlag As String = "01"  ' 他駅入出場フラグ
-    Dim bizOpRegCode As String = "01"     ' 地域コード (16進数の 0A)
-    Dim bizOpUserCode As String = "02"    ' ユーザコード (16進数の 0B)
-    Dim lineSec As String = "03"          ' 線区 (16進数の 0C)
-    Dim staOrder As String = "04"         ' 駅順 (16進数の 0D)
+    Dim issueDisFlag As String = "00"    ' 発行障害フラグ
+    Dim appBailFlag As String = "00"     ' 出場救済フラグ
+    Dim offlineTktFlag As String = "01"  ' オフライン改札機利用フラグ
+    Dim execPermitFlag As String = "00"  ' 実行許可フラグ
+    Dim modelType As String = "02"       ' 媒体種別 (01～04)
+    Dim otherStaAppFlag As String = "01" ' 他駅入出場フラグ
+    Dim bizOpRegCode As String = "AA"    ' 地域コード
+    Dim bizOpUserCode As String = "BB"   ' ユーザコード
+    Dim lineSec As String = "CC"         ' 線区
+    Dim staOrder As String = "DD"        ' 駅順
 
 
 
