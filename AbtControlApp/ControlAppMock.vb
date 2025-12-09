@@ -212,5 +212,93 @@ Public Class ControlAppMock
     Public Sub TestRequestJudgment_ExecPermitOn()
         SendJudgeRequest("01", "ON")
     End Sub
+    
+    'タンキングテスト
+    Public Sub TankingTest()
+
+        CreateTankingTestData()
+
+        System.Threading.Thread.Sleep(1000)
+
+        SendLine("Call,AbtTicketGateJudgmentTanking,0,0")
+    End Sub
+
+    Public Sub CreateTankingTestData()
+        Dim tankingDir As String = "C:\ABT\tanking"
+    
+        If Not Directory.Exists(tankingDir) Then
+            Directory.CreateDirectory(tankingDir)
+        End If
+
+        ' タンキングデータ作成 (108バイト)
+        Dim payload(107) As Byte
+    
+        ' ヘッダー部分 (4バイト)
+        payload(0) = &HA4  ' コマンドコード
+        payload(1) = &H0   ' サブコード
+        payload(2) = 104   ' レングス下位
+        payload(3) = 0     ' レングス上位
+
+        ' アプリケーションデータ部分 (104バイト)
+        Dim offset As Integer = 4
+
+        ' 処理方向 (1バイト)
+        payload(offset) = &H1  ' 01
+        offset += 1
+
+        ' QRコード (132バイト分の1で埋める)
+        For i As Integer = 0 To 131
+            payload(offset + i) = &H31  ' ASCII "1"
+        Next
+        offset += 132
+
+        ' QRチケット番号 (24バイト分の2で埋める)
+        For i As Integer = 0 To 23
+            payload(offset + i) = &H32  ' ASCII "2"
+        Next
+        offset += 24
+
+        ' 要求日時 (16バイト)
+        Dim reqTime() As Byte = System.Text.Encoding.ASCII.GetBytes("2025120615150000")
+        Buffer.BlockCopy(reqTime, 0, payload, offset, 16)
+        offset += 16
+
+        ' 各種フラグ (2バイトずつ)
+        payload(offset) = &H30 : payload(offset + 1) = &H30  ' 発行障害フラグ "00"
+        offset += 2
+        payload(offset) = &H30 : payload(offset + 1) = &H30  ' 出場救済フラグ "00"
+        offset += 2
+        payload(offset) = &H30 : payload(offset + 1) = &H31  ' オフライン改札機利用フラグ "01"
+        offset += 2
+        payload(offset) = &H30 : payload(offset + 1) = &H30  ' 実行許可フラグ "00"
+        offset += 2
+        payload(offset) = &H30 : payload(offset + 1) = &H32  ' 媒体種別 "02"
+        offset += 2
+        payload(offset) = &H30 : payload(offset + 1) = &H31  ' 他駅入出場フラグ "01"
+        offset += 2
+        payload(offset) = &H31 : payload(offset + 1) = &H30  ' 地域コード "10"
+        offset += 2
+        payload(offset) = &H32 : payload(offset + 1) = &H30  ' ユーザコード "20"
+        offset += 2
+        payload(offset) = &H33 : payload(offset + 1) = &H30  ' 線区 "30"
+        offset += 2
+        payload(offset) = &H34 : payload(offset + 1) = &H30  ' 駅順 "40"
+        offset += 2
+
+        ' ファイル名作成
+        Dim stnInfo As String = "ABC"
+        Dim timeStamp As String = DateTime.Now.ToString("yyyyMMddHHmmssfff")
+        Dim fileName As String = $"{stnInfo}_{timeStamp}.csv"
+        Dim filePath As String = Path.Combine(tankingDir, fileName)
+
+        ' ファイル書き込み
+        Try
+            File.WriteAllBytes(filePath, payload)
+            Console.WriteLine($"タンキングファイルを作成しました: {filePath}")
+        Catch ex As IOException
+            Console.WriteLine($"ファイル書き込みでエラー: {ex.Message}")
+        End Try
+    End Sub
+
 
 End Class
