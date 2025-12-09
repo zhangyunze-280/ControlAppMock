@@ -26,35 +26,30 @@ Public Class ControlAppMock
     Private recvThread As Thread
     Private recvCts As CancellationTokenSource
 
-    '判定要求コマンド定義
+    ' 判定要求コマンド定義
     ' 132文字のQRコード (args(1))
-    'Dim qrCode132 As String = New String("A"c, 132)
     Dim qrCode132 As String = New String("1"c, 132)
 
     ' 24文字のQRチケット番号 (args(2))
-    ' Dim qrTicket24 As String = New String("B"c, 24)
     Dim qrTicket24 As String = New String("2"c, 24)
 
     ' 要求日時 (yyyyMMddHHmmssff) (args(3))
-    Dim reqTime16 As String = "2025120615150000" 
+    Dim reqTime16 As String = "2025120615150000"
 
     ' 処理方向 (args(0))
-    Dim procDir As String = "01" 
+    Dim procDir As String = "01"
 
     ' 各フラグと駅情報コード (args(4) ～ args(13))
-    ' 00/01/02 などの許容値と2桁長をクリアする値
     Dim issueDisFlag As String = "00"    ' 発行障害フラグ
     Dim appBailFlag As String = "00"     ' 出場救済フラグ
     Dim offlineTktFlag As String = "01"  ' オフライン改札機利用フラグ
-    Dim execPermitFlag As String = "00"  ' 実行許可フラグ
+    Dim execPermitFlag As String = "00"  ' 実行許可フラグ（デフォルト値、実際はテストごとに上書き）
     Dim modelType As String = "02"       ' 媒体種別 (01～04)
     Dim otherStaAppFlag As String = "01" ' 他駅入出場フラグ
     Dim bizOpRegCode As String = "10"    ' 地域コード
     Dim bizOpUserCode As String = "20"   ' ユーザコード
     Dim lineSec As String = "30"         ' 線区
     Dim staOrder As String = "40"        ' 駅順
-
-
 
     ' ★ 外から受信メッセージを見られるようにイベントにする（ログでもOK）
     Public Event ReceivedLine(line As String)
@@ -170,42 +165,52 @@ Public Class ControlAppMock
     '==============================
     ' IT-01 シナリオ実行ヘルパ
     '==============================
-    ''' <summary>
-    ''' IT-01「起動時（タンキングデータ無し）」シナリオを一気に流すための補助メソッド。
-    ''' 手動で送受信を確認したいだけなら、Main側から SendLine を好きに呼んでもOK。
-    ''' </summary>
     Public Sub RunIt01Scenario()
         ' 1) 起動処理コマンド
         SendLine("Call,AbtOpen,0")
 
         ' 2) 認証データ要求コマンド（試験用固定値）
-        '    駅務機器情報：00112233445566778899（例）
-        '    認証データ送信日時：20250701（例）
         SendLine("Call,AbtAuthenticationData,00112233445566778899,20250701")
 
-        ' あとは ReceiveLoop 側で Result / Event を受信してログに出る。
-        ' 必要であれば、Main から Console.ReadKey() 等でしばらく待機する。
     End Sub
 
-    ' 判定要求実行
-    Public Sub TestRequestJudgment()
-        Dim commandLine As String = _
-            $"Call,AbtTicketGateJudgment," & _
-            $"{procDir}," & _          ' 引数 1: 処理方向
-            $"{qrCode132}," & _        ' 引数 2: QRコード (132桁)
-            $"{qrTicket24}," & _       ' 引数 3: QRチケット番号 (24桁)
-            $"{reqTime16}," & _        ' 引数 4: 要求日時 (16桁)
-            $"{issueDisFlag}," & _     ' 引数 5: 発行障害フラグ
-            $"{appBailFlag}," & _      ' 引数 6: 出場救済フラグ
-            $"{offlineTktFlag}," & _   ' 引数 7: オフライン改札機利用フラグ
-            $"{execPermitFlag}," & _    ' 引数 8: 実行許可フラグ
-            $"{modelType}," & _         ' 引数 9: 媒体種別
-            $"{otherStaAppFlag}," & _   ' 引数 10: 他駅入出場フラグ
-            $"{bizOpRegCode}," & _      ' 引数 11: 地域コード
-            $"{bizOpUserCode}," & _     ' 引数 12: ユーザコード
-            $"{lineSec}," & _           ' 引数 13: 線区
-            $"{staOrder}"               ' 引数 14: 駅順
+    '==============================
+    ' 判定要求：共通送信ロジック
+    '==============================
+    Private Sub SendJudgeRequest(execPermit As String, label As String)
+        Console.WriteLine($"=== 判定要求シナリオ開始 （実行許可フラグ={execPermit} [{label}]） ===")
+
+        Dim commandLine As String =
+            $"Call,AbtTicketGateJudgment," &
+            $"{procDir}," &          ' 引数 1: 処理方向
+            $"{qrCode132}," &        ' 引数 2: QRコード (132桁)
+            $"{qrTicket24}," &       ' 引数 3: QRチケット番号 (24桁)
+            $"{reqTime16}," &        ' 引数 4: 要求日時 (16桁)
+            $"{issueDisFlag}," &     ' 引数 5: 発行障害フラグ
+            $"{appBailFlag}," &      ' 引数 6: 出場救済フラグ
+            $"{offlineTktFlag}," &   ' 引数 7: オフライン改札機利用フラグ
+            $"{execPermit}," &       ' 引数 8: 実行許可フラグ（ここだけ可変）
+            $"{modelType}," &        ' 引数 9: 媒体種別
+            $"{otherStaAppFlag}," &  ' 引数 10: 他駅入出場フラグ
+            $"{bizOpRegCode}," &     ' 引数 11: 地域コード
+            $"{bizOpUserCode}," &    ' 引数 12: ユーザコード
+            $"{lineSec}," &          ' 引数 13: 線区
+            $"{staOrder}"            ' 引数 14: 駅順
 
         SendLine(commandLine)
+
+        Thread.Sleep(2000)
+        Console.WriteLine("=== 判定要求シナリオ終了 ===")
     End Sub
+
+    ' 実行許可フラグ OFF（"00"）テスト用
+    Public Sub TestRequestJudgment_ExecPermitOff()
+        SendJudgeRequest("00", "OFF")
+    End Sub
+
+    ' 実行許可フラグ ON（"01"）テスト用
+    Public Sub TestRequestJudgment_ExecPermitOn()
+        SendJudgeRequest("01", "ON")
+    End Sub
+
 End Class

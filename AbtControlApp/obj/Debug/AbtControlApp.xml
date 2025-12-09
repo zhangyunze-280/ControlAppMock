@@ -29,11 +29,5 @@ AbtControlApp
  ・dt_ABTcontrolS をサーバとして待ち受け（Result/Event 受信）
  </summary>
 </member>
-<member name="M:AbtControlApp.ControlAppMock.RunIt01Scenario">
- <summary>
- IT-01「起動時（タンキングデータ無し）」シナリオを一気に流すための補助メソッド。
- 手動で送受信を確認したいだけなら、Main側から SendLine を好きに呼んでもOK。
- </summary>
-</member>
 </members>
 </doc>
