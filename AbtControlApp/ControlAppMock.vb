@@ -211,6 +211,11 @@ Public Class ControlAppMock
 
     'タンキングテスト
     Public Sub TankingTest()
+
+        CreateTankingTestData()
+
+        System.Threading.Thread.Sleep(1000)
+
         SendLine("Call,AbtTicketGateJudgmentTanking,0,0")
     End Sub
 

@@ -12,6 +12,8 @@
 
         mock.TestRequestJudgment()
 
+        TankingTest()
+
         Console.WriteLine("IT-01 シナリオ送信完了。Result/Event を確認してください。")
         Console.WriteLine("何かキーを押すと終了します...")
         Console.ReadKey()
