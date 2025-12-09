@@ -208,4 +208,15 @@ Public Class ControlAppMock
 
         SendLine(commandLine)
     End Sub
+
+    'タンキングテスト
+    Public Sub TankingTest()
+        SendLine("Call,AbtTicketGateJudgmentTanking,0,0")
+    End Sub
+
+
+
 End Class
+
+
+

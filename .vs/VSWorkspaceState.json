@@ -1,6 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\AbtControlApp",
+    "\\AbtControlApp\\bin"
   ],
   "PreviewInSolutionExplorer": false
 }
