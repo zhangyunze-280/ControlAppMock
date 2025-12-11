@@ -29,5 +29,36 @@ AbtControlApp
  ・dt_ABTcontrolS をサーバとして待ち受け（Result/Event 受信）
  </summary>
 </member>
+<member name="M:AbtControlApp.ControlAppMock.RunCloseScenario">
+ <summary>
+ Call,AbtClose,0 を送信し、Result,AbtClose を待つ簡易シナリオ。
+ </summary>
+</member>
+<member name="M:AbtControlApp.ControlAppMock.RunIt01Scenario">
+ <summary>
+ IT-01「起動時（タンキングデータ無し）」シナリオを一気に流す。
+ </summary>
+</member>
+<member name="M:AbtControlApp.ControlAppMock.TestRequestJudgment">
+ <summary>
+ 現在の execPermitFlag 値で判定要求を1回だけ投げる（簡易テスト）。
+ </summary>
+</member>
+<member name="M:AbtControlApp.ControlAppMock.TestRequestJudgment_ExecPermitOff">
+ <summary>
+ 実行許可フラグ OFF（"00"）テスト用。
+ </summary>
+</member>
+<member name="M:AbtControlApp.ControlAppMock.TestRequestJudgment_ExecPermitOn">
+ <summary>
+ 実行許可フラグ ON（"01"）テスト用。
+ </summary>
+</member>
+<member name="M:AbtControlApp.ControlAppMock.CreateTankingTestData">
+ <summary>
+ タンキング用バイナリCSVを1ファイル作成する。
+ 合計 108バイト = ヘッダー(4) + アプリケーションデータ(104)。
+ </summary>
+</member>
 </members>
 </doc>

@@ -15,8 +15,8 @@ Public Class ControlAppMock
     Private Const ResultPipeName As String = "dt_ABTcontrolS"     ' ABT→制御 (ABT側 NamedPipeSender のクライアント)
 
     ' ★ エンコーディング
-    Private ReadOnly commandEncoding As Encoding = Encoding.GetEncoding(932) ' 制御→ABT（Receiver側が UTF8をSJISに修正）
-    Private ReadOnly resultEncoding As Encoding = Encoding.GetEncoding(932) ' ABT→制御（Sender側が SJIS）
+    Private ReadOnly commandEncoding As Encoding = Encoding.GetEncoding(932) ' 制御→ABT（Receiver側が SJIS）
+    Private ReadOnly resultEncoding As Encoding = Encoding.GetEncoding(932)  ' ABT→制御（Sender側が SJIS）
 
     ' パイプ実体
     Private commandClient As NamedPipeClientStream
@@ -26,30 +26,37 @@ Public Class ControlAppMock
     Private recvThread As Thread
     Private recvCts As CancellationTokenSource
 
+        ' 終了レスポンス待ち用
+    Private closeResultLine As String = Nothing
+    Private closeResultEvent As New AutoResetEvent(False)
+
+    '==============================
     ' 判定要求コマンド定義
+    '==============================
+
     ' 132文字のQRコード (args(1))
-    Dim qrCode132 As String = New String("1"c, 132)
+    Private qrCode132 As String = New String("1"c, 132)
 
     ' 24文字のQRチケット番号 (args(2))
-    Dim qrTicket24 As String = New String("2"c, 24)
+    Private qrTicket24 As String = New String("2"c, 24)
 
     ' 要求日時 (yyyyMMddHHmmssff) (args(3))
-    Dim reqTime16 As String = "2025120615150000"
+    Private reqTime16 As String = "2025120615150000"
 
     ' 処理方向 (args(0))
-    Dim procDir As String = "01"
+    Private procDir As String = "01"
 
     ' 各フラグと駅情報コード (args(4) ～ args(13))
-    Dim issueDisFlag As String = "00"    ' 発行障害フラグ
-    Dim appBailFlag As String = "00"     ' 出場救済フラグ
-    Dim offlineTktFlag As String = "01"  ' オフライン改札機利用フラグ
-    Dim execPermitFlag As String = "00"  ' 実行許可フラグ（デフォルト値、実際はテストごとに上書き）
-    Dim modelType As String = "02"       ' 媒体種別 (01～04)
-    Dim otherStaAppFlag As String = "01" ' 他駅入出場フラグ
-    Dim bizOpRegCode As String = "10"    ' 地域コード
-    Dim bizOpUserCode As String = "20"   ' ユーザコード
-    Dim lineSec As String = "30"         ' 線区
-    Dim staOrder As String = "40"        ' 駅順
+    Private issueDisFlag As String = "00"    ' 発行障害フラグ
+    Private appBailFlag As String = "00"     ' 出場救済フラグ
+    Private offlineTktFlag As String = "01"  ' オフライン改札機利用フラグ
+    Private execPermitFlag As String = "00"  ' 実行許可フラグ（TestRequestJudgment 用デフォルト）
+    Private modelType As String = "02"       ' 媒体種別 (01～04)
+    Private otherStaAppFlag As String = "01" ' 他駅入出場フラグ
+    Private bizOpRegCode As String = "10"    ' 地域コード
+    Private bizOpUserCode As String = "20"   ' ユーザコード
+    Private lineSec As String = "30"         ' 線区
+    Private staOrder As String = "40"        ' 駅順
 
     ' ★ 外から受信メッセージを見られるようにイベントにする（ログでもOK）
     Public Event ReceivedLine(line As String)
@@ -144,34 +151,69 @@ Public Class ControlAppMock
     '==============================
     ' ABT→制御 受信ループ
     '==============================
-    Private Sub ReceiveLoop()
-        Try
-            While Not recvCts.IsCancellationRequested
-                Dim line As String = resultReader.ReadLine()
-                If line Is Nothing Then
-                    Exit While ' 切断
-                End If
+Private Sub ReceiveLoop()
+    Try
+        While Not recvCts.IsCancellationRequested
+            Dim line As String = resultReader.ReadLine()
+            If line Is Nothing Then
+                Exit While ' 切断
+            End If
 
-                RaiseEvent ReceivedLine(line)
-                Console.WriteLine("[RECV] " & line)
-            End While
-        Catch ex As Exception
-            Console.WriteLine("[Mock] ReceiveLoop error: " & ex.Message)
-        End Try
+            ' ★ 終了レスポンス専用のフック
+            If line.StartsWith("Result,AbtClose", StringComparison.OrdinalIgnoreCase) Then
+                closeResultLine = line
+                closeResultEvent.Set()
+            End If
 
-        Console.WriteLine("[Mock] ReceiveLoop end.")
+            RaiseEvent ReceivedLine(line)
+            Console.WriteLine("[RECV] " & line)
+        End While
+    Catch ex As Exception
+        Console.WriteLine("[Mock] ReceiveLoop error: " & ex.Message)
+    End Try
+
+    Console.WriteLine("[Mock] ReceiveLoop end.")
+End Sub
+
+     ' ==============================
+    ' 終了処理シナリオ実行
+    ' ==============================
+    ''' <summary>
+    ''' Call,AbtClose,0 を送信し、Result,AbtClose を待つ簡易シナリオ。
+    ''' </summary>
+    Public Sub RunCloseScenario()
+  Console.WriteLine("=== 終了処理シナリオ開始 ===")
+
+    ' 前の結果をクリア
+    closeResultLine = Nothing
+
+    ' 1) 終了処理コマンド送信（引数1 は予備で 0 固定）
+    SendLine("Call,AbtClose,0")
+
+    ' 2) Result,AbtClose を待つ（例：3 秒タイムアウト）
+    If closeResultEvent.WaitOne(TimeSpan.FromSeconds(3)) Then
+        Console.WriteLine($"[CHECK] 終了レスポンス受信: {closeResultLine}")
+    Else
+        Console.WriteLine("[CHECK] 3秒以内に Result,AbtClose が返ってきませんでした。")
+    End If
+
+    Console.WriteLine("=== 終了処理シナリオ終了 ===")
     End Sub
 
     '==============================
     ' IT-01 シナリオ実行ヘルパ
     '==============================
+    ''' <summary>
+    ''' IT-01「起動時（タンキングデータ無し）」シナリオを一気に流す。
+    ''' </summary>
     Public Sub RunIt01Scenario()
         ' 1) 起動処理コマンド
         SendLine("Call,AbtOpen,0")
 
         ' 2) 認証データ要求コマンド（試験用固定値）
+        '    駅務機器情報：00112233445566778899
+        '    認証データ送信日時：20250701
         SendLine("Call,AbtAuthenticationData,00112233445566778899,20250701")
-
     End Sub
 
     '==============================
@@ -203,87 +245,133 @@ Public Class ControlAppMock
         Console.WriteLine("=== 判定要求シナリオ終了 ===")
     End Sub
 
-    ' 実行許可フラグ OFF（"00"）テスト用
+    ''' <summary>
+    ''' 現在の execPermitFlag 値で判定要求を1回だけ投げる（簡易テスト）。
+    ''' </summary>
+    Public Sub TestRequestJudgment()
+        SendJudgeRequest(execPermitFlag, "CURRENT")
+    End Sub
+
+    ''' <summary>
+    ''' 実行許可フラグ OFF（"00"）テスト用。
+    ''' </summary>
     Public Sub TestRequestJudgment_ExecPermitOff()
         SendJudgeRequest("00", "OFF")
     End Sub
 
-    ' 実行許可フラグ ON（"01"）テスト用
+    ''' <summary>
+    ''' 実行許可フラグ ON（"01"）テスト用。
+    ''' </summary>
     Public Sub TestRequestJudgment_ExecPermitOn()
         SendJudgeRequest("01", "ON")
     End Sub
-    
-    'タンキングテスト
-    Public Sub TankingTest()
 
+    '==============================
+    ' タンキングテスト
+    '==============================
+    Public Sub TankingTest()
         CreateTankingTestData()
 
-        System.Threading.Thread.Sleep(1000)
+        Thread.Sleep(1000)
 
         SendLine("Call,AbtTicketGateJudgmentTanking,0,0")
     End Sub
 
+    ''' <summary>
+    ''' タンキング用バイナリCSVを1ファイル作成する。
+    ''' 合計 108バイト = ヘッダー(4) + アプリケーションデータ(104)。
+    ''' </summary>
     Public Sub CreateTankingTestData()
         Dim tankingDir As String = "C:\ABT\tanking"
-    
+
         If Not Directory.Exists(tankingDir) Then
             Directory.CreateDirectory(tankingDir)
         End If
 
-        ' タンキングデータ作成 (108バイト)
+        ' 合計 108バイト = ヘッダー(4) + アプリケーションデータ(104)
         Dim payload(107) As Byte
-    
+
         ' ヘッダー部分 (4バイト)
         payload(0) = &HA4  ' コマンドコード
         payload(1) = &H0   ' サブコード
         payload(2) = 104   ' レングス下位
         payload(3) = 0     ' レングス上位
 
-        ' アプリケーションデータ部分 (104バイト)
         Dim offset As Integer = 4
 
-        ' 処理方向 (1バイト)
-        payload(offset) = &H1  ' 01
+        ' 1. 入出力データ部 (1バイト)
+        payload(offset) = &H01  ' 0x01: 入場
         offset += 1
 
-        ' QRコード (132バイト分の1で埋める)
-        For i As Integer = 0 To 131
-            payload(offset + i) = &H31  ' ASCII "1"
+        ' 2. QRコード (66バイト)
+        For i As Integer = 0 To 65
+            payload(offset + i) = &H31  ' "1"で埋める
         Next
-        offset += 132
+        offset += 66
 
-        ' QRチケット番号 (24バイト分の2で埋める)
-        For i As Integer = 0 To 23
-            payload(offset + i) = &H32  ' ASCII "2"
+        ' 3. QRチケット番号 (12バイト)
+        For i As Integer = 0 To 11
+            payload(offset + i) = &H32  ' "2"で埋める
         Next
-        offset += 24
+        offset += 12
 
-        ' 要求日時 (16バイト)
-        Dim reqTime() As Byte = System.Text.Encoding.ASCII.GetBytes("2025120615150000")
-        Buffer.BlockCopy(reqTime, 0, payload, offset, 16)
-        offset += 16
+        ' 4. 要求日時 (8バイト, BCD想定)
+        Dim reqTime() As Byte = {&H20, &H25, &H08, &H01, &H12, &H34, &H56, &H01}
+        Buffer.BlockCopy(reqTime, 0, payload, offset, 8)
+        offset += 8
 
-        ' 各種フラグ (2バイトずつ)
-        payload(offset) = &H30 : payload(offset + 1) = &H30  ' 発行障害フラグ "00"
-        offset += 2
-        payload(offset) = &H30 : payload(offset + 1) = &H30  ' 出場救済フラグ "00"
-        offset += 2
-        payload(offset) = &H30 : payload(offset + 1) = &H31  ' オフライン改札機利用フラグ "01"
-        offset += 2
-        payload(offset) = &H30 : payload(offset + 1) = &H30  ' 実行許可フラグ "00"
-        offset += 2
-        payload(offset) = &H30 : payload(offset + 1) = &H32  ' 媒体種別 "02"
-        offset += 2
-        payload(offset) = &H30 : payload(offset + 1) = &H31  ' 他駅入出場フラグ "01"
-        offset += 2
-        payload(offset) = &H31 : payload(offset + 1) = &H30  ' 地域コード "10"
-        offset += 2
-        payload(offset) = &H32 : payload(offset + 1) = &H30  ' ユーザコード "20"
-        offset += 2
-        payload(offset) = &H33 : payload(offset + 1) = &H30  ' 線区 "30"
-        offset += 2
-        payload(offset) = &H34 : payload(offset + 1) = &H30  ' 駅順 "40"
-        offset += 2
+        ' 5. 発行障害フラグ (1バイト)
+        payload(offset) = &H00  ' 0x00: オンライン発行
+        offset += 1
+
+        ' 6. 出場救済フラグ (1バイト)
+        payload(offset) = &H00  ' 0x00: 出場救済対象外
+        offset += 1
+
+        ' 7. オフライン改札機利用フラグ (1バイト)
+        payload(offset) = &H01  ' 0x01: オフライン改札機利用なし
+        offset += 1
+
+        ' 8. 実行許可フラグ (1バイト)
+        payload(offset) = &H00  ' 0x00: 実行許可オフ
+        offset += 1
+
+        ' 9. 媒体種別 (1バイト)
+        payload(offset) = &H02  ' 0x02: QR
+        offset += 1
+
+        ' 10. 他駅入出場フラグ (1バイト)
+        payload(offset) = &H00  ' 0x00: 他駅入出場処理を実施しない
+        offset += 1
+
+        ' 11. 事業者地域コード (1バイト)
+        payload(offset) = &H01  ' サイバネコード設定
+        offset += 1
+
+        ' 12. 事業者ユーザコード (1バイト)
+        payload(offset) = &H01  ' サイバネコード設定
+        offset += 1
+
+        ' 13. 線区 (1バイト)
+        payload(offset) = &H01  ' サイバネコード設定
+        offset += 1
+
+        ' 14. 駅順 (1バイト)
+        payload(offset) = &H01  ' サイバネコード設定
+        offset += 1
+
+        ' 15. 予備 (3バイト)
+        For i As Integer = 0 To 2
+            payload(offset + i) = &H00
+        Next
+        offset += 3
+
+        ' 16. サム値 (4バイト)
+        Dim sum As UInteger = 0
+        For i As Integer = 4 To offset - 1  ' ヘッダーを除いたアプリケーションデータの合計
+            sum += CUInt(payload(i))
+        Next
+        Buffer.BlockCopy(BitConverter.GetBytes(sum), 0, payload, offset, 4)
 
         ' ファイル名作成
         Dim stnInfo As String = "ABC"
@@ -299,6 +387,5 @@ Public Class ControlAppMock
             Console.WriteLine($"ファイル書き込みでエラー: {ex.Message}")
         End Try
     End Sub
-
 
 End Class
