@@ -5,6 +5,9 @@
         ' ★ ここにブレークポイント①を置くと、Start() の中の接続の様子を追える
         mock.Start()
 
+        Dim qrFilePath As String = "C:\ABT\work\qr_data.txt" ' 例
+        mock.LoadQrCodeFromFile(qrFilePath)
+
         ' ★ ここにブレークポイント②：IT-01 の入力シーケンスを流す直前
         mock.RunIt01Scenario()
 
