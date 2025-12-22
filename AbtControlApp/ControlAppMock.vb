@@ -241,7 +241,6 @@ End Sub
 
         SendLine(commandLine)
 
-        Thread.Sleep(2000)
         Console.WriteLine("=== 判定要求シナリオ終了 ===")
     End Sub
 
@@ -257,6 +256,7 @@ End Sub
     ''' </summary>
     Public Sub TestRequestJudgment_ExecPermitOff()
         SendJudgeRequest("00", "OFF")
+
     End Sub
 
     ''' <summary>
@@ -264,6 +264,7 @@ End Sub
     ''' </summary>
     Public Sub TestRequestJudgment_ExecPermitOn()
         SendJudgeRequest("01", "ON")
+
     End Sub
 
     '==============================
