@@ -35,7 +35,8 @@ Public Class ControlAppMock
     '==============================
 
     ' 132文字のQRコード (args(1))
-    Private qrCode132 As String = New String("1"c, 132)
+    'Private qrCode132 As String = New String("1"c, 132)
+    Private qrCode132 As String = ""
 
     ' 24文字のQRチケット番号 (args(2))
     Private qrTicket24 As String = New String("2"c, 24)
@@ -385,6 +386,24 @@ End Sub
             Console.WriteLine($"タンキングファイルを作成しました: {filePath}")
         Catch ex As IOException
             Console.WriteLine($"ファイル書き込みでエラー: {ex.Message}")
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' PCに保存したQRデータファイル（テキスト）を読み込んで変数にセットする
+    ''' </summary>
+    Public Sub LoadQrCodeFromFile(filePath As String)
+        Try
+            ' ファイルの中身（132桁の文字列想定）を読み込む
+            Dim data As String = File.ReadAllText(filePath).Trim()
+        
+            ' 桁数チェックなどのバリデーション（必要に応じて）
+            If data.Length > 0 Then
+                Me.qrCode132 = data ' qrCode132 変数を上書き
+                Console.WriteLine($"[Mock] QRデータをファイルから読み込みました: {data}")
+            End If
+        Catch ex As Exception
+            Console.WriteLine($"[Mock] ファイル読み込み失敗: {ex.Message}")
         End Try
     End Sub
 
