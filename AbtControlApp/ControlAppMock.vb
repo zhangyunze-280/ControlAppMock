@@ -3,6 +3,11 @@ Imports System.IO.Pipes
 Imports System.Text
 Imports System.Threading
 
+Imports System.Text.RegularExpressions
+Imports ZXing
+Imports ZXing.Common
+Imports ZXing.Windows.Compatibility
+
 ''' <summary>
 ''' 制御アプリ模擬（ABTコントロールとの名前付きパイプ通信テスト用）
 ''' ・dt_ABTcontrolIS にクライアントとして接続（コマンド送信）
@@ -11,8 +16,8 @@ Imports System.Threading
 Public Class ControlAppMock
 
     ' ★ ABT 側の実装に合わせたパイプ名
-    Private Const CommandPipeName As String = "dt_ABTcontrolIS"   ' 制御→ABT (ABT側 NamedPipeReceiver のサーバ)
-    Private Const ResultPipeName As String = "dt_ABTcontrolS"     ' ABT→制御 (ABT側 NamedPipeSender のクライアント)
+    Private Const CommandPipeName As String = "dt_ABTcontrolS"   ' 制御→ABT (ABT側 NamedPipeReceiver のサーバ)
+    Private Const ResultPipeName As String = "dt_ABTcontrolR"     ' ABT→制御 (ABT側 NamedPipeSender のクライアント)
 
     ' ★ エンコーディング
     Private ReadOnly commandEncoding As Encoding = Encoding.GetEncoding(932) ' 制御→ABT（Receiver側が SJIS）
@@ -223,6 +228,16 @@ End Sub
     Private Sub SendJudgeRequest(execPermit As String, label As String)
         Console.WriteLine($"=== 判定要求シナリオ開始 （実行許可フラグ={execPermit} [{label}]） ===")
 
+        If String.IsNullOrWhiteSpace(qrCode132) Then
+            Console.WriteLine("[Mock] qrCode132 が未設定(空)のため送信しません。LoadQrCodeFromImage などでセットしてください。")
+            Return
+        End If
+
+        ' （132桁チェックはしない：ABT側に任せる）
+        If qrCode132.Length <> 132 Then
+            Console.WriteLine($"[Mock] 注意：qrCode132 len={qrCode132.Length}（ABT側でエラー判定される想定）")
+        End If
+
         Dim commandLine As String =
             $"Call,AbtTicketGateJudgment," &
             $"{procDir}," &          ' 引数 1: 処理方向
@@ -390,21 +405,55 @@ End Sub
         End Try
     End Sub
 
-    ''' <summary>
-    ''' PCに保存したQRデータファイル（テキスト）を読み込んで変数にセットする
-    ''' </summary>
-    Public Sub LoadQrCodeFromFile(filePath As String)
+    ' ==============================
+    ' QR画像を読み取って qrCode132 をセット
+    ' ※QR内は「16進文字列」想定だが、長さはここではチェックしない（ABT側で検証）
+    ' ==============================
+    Public Sub LoadQrCodeFromImage(filePath As String)
         Try
-            ' ファイルの中身（132桁の文字列想定）を読み込む
-            Dim data As String = File.ReadAllText(filePath).Trim()
-        
-            ' 桁数チェックなどのバリデーション（必要に応じて）
-            If data.Length > 0 Then
-                Me.qrCode132 = data ' qrCode132 変数を上書き
-                Console.WriteLine($"[Mock] QRデータをファイルから読み込みました: {data}")
+            If Not File.Exists(filePath) Then
+                Console.WriteLine($"[Mock] 画像が見つかりません: {filePath}")
+                Return
             End If
+
+            Using bmp As New Bitmap(filePath)
+
+                ' ★ あいまい回避：ZXing.BarcodeReader を明示
+                Dim reader As New ZXing.BarcodeReader() With {
+                .AutoRotate = True,
+                .TryInverted = True
+            }
+
+                Dim result = reader.Decode(bmp)
+                If result Is Nothing OrElse String.IsNullOrWhiteSpace(result.Text) Then
+                    Console.WriteLine("[Mock] QRのデコードに失敗しました（読み取り結果なし）")
+                    Return
+                End If
+
+                Dim text As String = result.Text.Trim()
+
+                ' CSV(カンマ区切り)を壊す文字は最低限弾く
+                If text.Contains(","c) OrElse text.Contains(vbCr) OrElse text.Contains(vbLf) Then
+                    Console.WriteLine($"[Mock] QR内容にカンマ/改行が含まれているため送信できません: {text}")
+                    Return
+                End If
+
+                ' ここでは「16進っぽいか」だけ軽く見る（必須ではない）
+                If Not Regex.IsMatch(text, "^[0-9A-Fa-f]+$") Then
+                    Console.WriteLine($"[Mock] QR内容が16進文字列ではない可能性があります（このまま送ります） len={text.Length}")
+                End If
+
+                Me.qrCode132 = text.ToUpperInvariant()
+
+                If Me.qrCode132.Length <> 132 Then
+                    Console.WriteLine($"[Mock] QR長が132ではありません（ABT側の検証に任せて送信します） len={Me.qrCode132.Length}")
+                Else
+                    Console.WriteLine($"[Mock] QR読み取り成功 len=132")
+                End If
+            End Using
+
         Catch ex As Exception
-            Console.WriteLine($"[Mock] ファイル読み込み失敗: {ex.Message}")
+            Console.WriteLine($"[Mock] QR画像読み込み失敗: {ex.Message}")
         End Try
     End Sub
 
