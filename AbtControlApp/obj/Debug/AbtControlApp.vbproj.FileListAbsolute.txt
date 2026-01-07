@@ -2,13 +2,6 @@ C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\AbtControlApp.exe.config
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\AbtControlApp.exe
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\AbtControlApp.pdb
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\AbtControlApp.xml
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.Resources.resources
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbproj.GenerateResource.cache
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbproj.CoreCompileInputs.cache
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.exe
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.xml
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.pdb
-C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbprojAssemblyReference.cache
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\System.Drawing.Common.dll
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\zxing.dll
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\zxing.presentation.dll
@@ -19,4 +12,11 @@ C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\zxing.xml
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\zxing.presentation.xml
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\ZXing.Windows.Compatibility.pdb
 C:\Users\zhangyunze\source\git\AbtControlApp\bin\Debug\ZXing.Windows.Compatibility.xml
+C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbprojAssemblyReference.cache
+C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.Resources.resources
+C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbproj.GenerateResource.cache
+C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbproj.CoreCompileInputs.cache
 C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.vbproj.CopyComplete
+C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.exe
+C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.xml
+C:\Users\zhangyunze\source\git\AbtControlApp\obj\Debug\AbtControlApp.pdb

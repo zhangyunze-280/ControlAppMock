@@ -2,16 +2,30 @@
     Sub Main()
         Dim mock As New ControlAppMock()
 
-        ' ★ ここにブレークポイント①を置くと、Start() の中の接続の様子を追える
+        '  ここにブレークポイント①を置くと、Start() の中の接続の様子を追える
         mock.Start()
 
-        ' ★ ここにブレークポイント②：IT-01 の入力シーケンスを流す直前
         mock.RunIt01Scenario()
 
-        System.Threading.Thread.Sleep(5000)
+        'mock.LoadQrCodeFromImage("C:\ABT\qr\sample.png")
+        'System.Threading.Thread.Sleep(5000) ' Open/Authの完了待ち（本当はResult待ちが理想）
 
-        mock.LoadQrCodeFromImage("C:\ABT\qr\sample_wrong.png")
-        mock.TestRequestJudgment()
+        'mock.TestRequestJudgment_ExecPermitOff()
+
+        '旅客通過時間を模擬
+        'System.Threading.Thread.Sleep(800)
+
+        'mock.TestRequestJudgment_ExecPermitOn()
+
+        ' mock.RunRealJudgeScenario(authHex20:="00010235FFE32F030500",authYmd:="20251225",qrImagePath:="C:\temp\qr.png",execPermit:="01")
+
+        ' ここにブレークポイント②：IT-01 の入力シーケンスを流す直前
+        'mock.RunIt01Scenario()
+
+        'System.Threading.Thread.Sleep(5000)
+
+        'mock.LoadQrCodeFromImage("C:\ABT\qr\sample.png")
+        'mock.TestRequestJudgment()
 
         ' ★ 実行許可フラグ OFF（オフラインの時、タンキングなし → Event結果=0想定）
         'mock.TestRequestJudgment_ExecPermitOff()
@@ -39,10 +53,10 @@
         'タンキング
         'mock.TankingTest()
 
-        System.Threading.Thread.Sleep(1800000)
+        'System.Threading.Thread.Sleep(1800000)
         'mock.TestRequestJudgment_ExecPermitOn()
 
-        mock.RunCloseScenario()  ' 終了処理
+        'mock.RunCloseScenario()  ' 終了処理
 
         Console.WriteLine("IT-01 シナリオ送信完了。Result/Event を確認してください。")
         Console.WriteLine("何かキーを押すと終了します...")
